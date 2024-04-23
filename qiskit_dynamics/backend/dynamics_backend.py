@@ -848,7 +848,9 @@ def default_experiment_result_function(
     if isinstance(yf, Statevector):
         yf = np.array(backend.options.solver.model.rotating_frame.state_out_of_frame(t=tf, y=yf))
         yf = backend._dressed_states_adjoint @ yf
-        yf = Statevector(yf, dims=backend.options.subsystem_dims)
+        non_trival_dims = [dim for dim in backend.options.subsystem_dims if dim != 1]
+        yf = Statevector(yf, dims=non_trival_dims)
+        print(backend.options.subsystem_dims)
 
         if backend.options.normalize_states:
             yf = yf / np.linalg.norm(yf.data)
