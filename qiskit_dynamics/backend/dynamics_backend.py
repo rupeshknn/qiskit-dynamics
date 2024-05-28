@@ -179,9 +179,16 @@ class DynamicsBackend(BackendV2):
         )
 
         # Dressed states of solver, will be calculated when solver option is set
-        self._dressed_evals = None
-        self._dressed_states = None
-        self._dressed_states_adjoint = None
+        # self._dressed_evals = None
+        # self._dressed_states = None
+        # self._dressed_states_adjoint = None
+
+        if "dressed_states" in options:
+            self._dressed_states = options["dressed_states"]
+            self._dressed_states_adjoint = self._dressed_states.conj().transpose()
+            if "_dressed_evals" not in options:
+                raise QiskitError("if dressed_states are provided, _dressed_evals must also be provided")
+            self._dressed_evals = options["_dressed_evals"]
 
         # add subsystem_dims to options so set_options validation works
         if "subsystem_dims" not in options:
@@ -249,8 +256,8 @@ class DynamicsBackend(BackendV2):
         validate_iq_centers = False
 
         for key, value in fields.items():
-            if not hasattr(self._options, key):
-                raise AttributeError(f"Invalid option {key}")
+            # if not hasattr(self._options, key):
+            #     raise AttributeError(f"Invalid option {key}")
 
             # validation checks
             if key == "initial_state":
@@ -326,6 +333,9 @@ class DynamicsBackend(BackendV2):
                 to the number of subsystems, and each inner list of length equal to the
                 corresponding subsystem dimension."""
                 )
+        
+        if self._dressed_states is None:
+            self.set_dressed_basis()
 
     def _set_solver(self, solver):
         """Configure simulator based on provided solver."""
@@ -335,8 +345,10 @@ class DynamicsBackend(BackendV2):
             )
 
         self._options.update_options(solver=solver)
+    
+    def set_dressed_basis(self):
         # Get dressed states
-        static_hamiltonian = _get_lab_frame_static_hamiltonian(solver.model)
+        static_hamiltonian = _get_lab_frame_static_hamiltonian(self.options.solver.model)
         dressed_evals, dressed_states = _get_dressed_state_decomposition(static_hamiltonian)
         self._dressed_evals = dressed_evals
         self._dressed_states = dressed_states
