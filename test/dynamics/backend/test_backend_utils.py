@@ -182,9 +182,9 @@ class Test_get_memory_slot_probabilities(QiskitDynamicsTestCase):
         probability_dict = {"000": 0.25, "001": 0.3, "200": 0.4, "010": 0.05}
 
         output = _get_memory_slot_probabilities(
-            probability_dict=probability_dict, memory_slot_indices=[0, 1, 2]
+            probability_dict=probability_dict, memory_slot_indices=[0, 1, 2], max_outcome_value=2
         )
-        self.assertDictEqual(output, probability_dict)
+        self.assertDictEqual(output, {hex(int(k, 3)): v for k, v in probability_dict.items()})
 
     def test_basic_reordering(self):
         """Test case with simple re-ordering."""
@@ -192,9 +192,11 @@ class Test_get_memory_slot_probabilities(QiskitDynamicsTestCase):
         probability_dict = {"000": 0.25, "001": 0.3, "200": 0.4, "010": 0.05}
 
         output = _get_memory_slot_probabilities(
-            probability_dict=probability_dict, memory_slot_indices=[2, 0, 1]
+            probability_dict=probability_dict, memory_slot_indices=[2, 0, 1], max_outcome_value=2
         )
-        self.assertDictEqual(output, {"000": 0.25, "100": 0.3, "020": 0.4, "001": 0.05})
+        expected = {"000": 0.25, "100": 0.3, "020": 0.4, "001": 0.05}
+
+        self.assertDictEqual(output, {hex(int(k, 3)): v for k, v in expected.items()})
 
     def test_extra_memory_slots(self):
         """Test case with more memory slots than there are digits in probability_dict keys."""
@@ -202,10 +204,11 @@ class Test_get_memory_slot_probabilities(QiskitDynamicsTestCase):
         probability_dict = {"000": 0.25, "001": 0.3, "200": 0.4, "010": 0.05}
 
         output = _get_memory_slot_probabilities(
-            probability_dict=probability_dict,
-            memory_slot_indices=[3, 0, 1],
+            probability_dict=probability_dict, memory_slot_indices=[3, 0, 1], max_outcome_value=2
         )
-        self.assertDictEqual(output, {"0000": 0.25, "1000": 0.3, "0020": 0.4, "0001": 0.05})
+        expected = {"0000": 0.25, "1000": 0.3, "0020": 0.4, "0001": 0.05}
+
+        self.assertDictEqual(output, {hex(int(k, 3)): v for k, v in expected.items()})
 
     def test_bound_and_merging(self):
         """Test case with max outcome bound."""
@@ -218,7 +221,9 @@ class Test_get_memory_slot_probabilities(QiskitDynamicsTestCase):
             num_memory_slots=4,
             max_outcome_value=1,
         )
-        self.assertDictEqual(output, {"0000": 0.25, "0100": 0.3, "0010": 0.4, "0001": 0.05})
+        expected = {"0000": 0.25, "0100": 0.3, "0010": 0.4, "0001": 0.05}
+
+        self.assertDictEqual(output, {hex(int(k, 2)): v for k, v in expected.items()})
 
 
 class Test_sample_probability_dict(QiskitDynamicsTestCase):
